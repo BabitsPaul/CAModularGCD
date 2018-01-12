@@ -19,7 +19,7 @@ public class PrimeGenerator implements IntSupplier {
      */
     public PrimeGenerator() {
         this.primes = new boolean[8];
-        current = 2;
+        this.current = 2;
         sievePrimes();
     }
 
