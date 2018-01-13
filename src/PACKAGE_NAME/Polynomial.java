@@ -2,6 +2,7 @@ package PACKAGE_NAME;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import javafx.util.Pair;
 
 public class Polynomial {
@@ -39,7 +40,7 @@ public class Polynomial {
             long coeff = monomial.getValue();
             result.monomials.put(exp, (result.monomials.containsKey(exp) ? result.monomials.get(exp) : 0) + coeff);
         }
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
     public Polynomial sub(Polynomial p) {
@@ -57,7 +58,7 @@ public class Polynomial {
             long coeff = monomial.getValue();
             result.monomials.put(exp, (result.monomials.containsKey(exp) ? result.monomials.get(exp) : 0) - coeff);
         }
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
     public Polynomial mul(Polynomial p) {
@@ -80,7 +81,7 @@ public class Polynomial {
                 result.monomials.put(e, coeff);
             }
         }
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
     public Polynomial div(Polynomial p) {
@@ -89,7 +90,7 @@ public class Polynomial {
         }
         Polynomial result = new Polynomial(nVars);
 
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
     public Polynomial mod(Polynomial p) {
@@ -98,19 +99,21 @@ public class Polynomial {
         }
         Polynomial result = new Polynomial(nVars);
 
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
     public Polynomial mod(long p) {
         Polynomial result = new Polynomial(nVars);
 
-        return result.clean();
+        return result.removeZeroCoefficients();
     }
 
-    private Polynomial clean() {
-        for (Entry<Exponents, Long> entry : monomials.entrySet()) {
+    private Polynomial removeZeroCoefficients() {
+        Iterator<Entry<Exponents, Long>> iterator = monomials.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<Exponents, Long> entry = iterator.next();
             if (entry.getValue() == 0) {
-                monomials.remove(entry.getKey());
+                iterator.remove();
             }
         }
         return this;
@@ -133,7 +136,7 @@ public class Polynomial {
             long coeff = p.getKey() * Long.parseLong(terms[0]);
             long[] exps = new long[nVars];
             for (int i = 1; i < terms.length; i++) {
-                String[] var = terms[i].split("^");
+                String[] var = terms[i].split("\\^");
                 exps[Integer.parseInt(var[0])] = Long.parseLong(var[1]);
             }
             res.add(new Pair<>(coeff, new Exponents(exps)));
@@ -153,7 +156,29 @@ public class Polynomial {
 
     @Override
     public String toString() {
-        return null;
+        StringBuilder sb = new StringBuilder();
+        for (Entry<Exponents, Long> monomial : getSortedMonomials()) {
+            long coeff = monomial.getValue();
+            Exponents e = monomial.getKey();
+            if (coeff > 0) {
+                sb.append(" + ");
+            } else {
+                sb.append(" - ");
+            }
+            sb.append(Math.abs(coeff));
+            for (int i = 0; i < e.e.length; i++) {
+                sb.append(" * x_").append(i).append("^").append(e.e[i]);
+            }
+        }
+        return sb.toString();
+    }
+
+    private List<Entry<Exponents, Long>> getSortedMonomials() {
+        return monomials
+                .entrySet()
+                .stream()
+                .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+                .collect(Collectors.toList());
     }
 
     private static class Exponents implements Comparable<Exponents> {
