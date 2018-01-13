@@ -14,14 +14,16 @@ public class ModularGCD {
     private static void polynomials() {
         // Example usage of polynomials
         Polynomial poly1 = Polynomial.parse("-15*1^2*2^3*4^5+12*3^2*0^3", 5);
-        Polynomial poly2 = Polynomial.parse("15*1^2*2^3*4^5-12*4^2*2^3", 5);
+        Polynomial poly2 = Polynomial.parse("15*1^2*2^3*4^5-3*0^8*4^2*2^3", 5);
         System.out.println(poly1);
         Polynomial twicePoly1 = poly1.add(poly1);
         System.out.println(twicePoly1);
         Polynomial polySum = poly1.add(poly2);
         System.out.println(polySum);
-        Polynomial polyProd = twicePoly1.add(polySum);
+        Polynomial polyProd = twicePoly1.mul(polySum);
         System.out.println(polyProd);
+        Polynomial zero = twicePoly1.sub(twicePoly1);
+        System.out.println(zero); // Empty line
     }
 
     private static void primes() {

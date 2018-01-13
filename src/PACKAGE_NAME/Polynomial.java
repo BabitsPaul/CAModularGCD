@@ -34,7 +34,6 @@ public class Polynomial {
             long coeff = monomial.getValue();
             result.monomials.put(exp, coeff);
         }
-
         for (Entry<Exponents, Long> monomial : p.monomials.entrySet()) {
             Exponents exp = monomial.getKey();
             long coeff = monomial.getValue();
@@ -77,7 +76,7 @@ public class Polynomial {
                     exp[i] = e1.e[i] + e2.e[i];
                 }
                 Exponents e = new Exponents(exp);
-                long coeff = result.monomials.containsKey(e) ? result.monomials.get(e) : 0 + coeff1 * coeff2;
+                long coeff = (result.monomials.containsKey(e) ? result.monomials.get(e) : 0) + coeff1 * coeff2;
                 result.monomials.put(e, coeff);
             }
         }
@@ -177,7 +176,7 @@ public class Polynomial {
         return monomials
                 .entrySet()
                 .stream()
-                .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+                .sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
                 .collect(Collectors.toList());
     }
 
