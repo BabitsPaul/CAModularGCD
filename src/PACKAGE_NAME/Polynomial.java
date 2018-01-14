@@ -112,17 +112,6 @@ public class Polynomial {
         return div_mod(other).getValue();
     }
 
-    public long gcd(long a, long b) {
-        long x = Math.max(a, b);
-        long n = Math.min(a, b);
-        while (n > 0) {
-            long z = x % n;
-            x = n;
-            n = z;
-        }
-        return x;
-    }
-
     public Pair<Polynomial, Polynomial> div_mod(Polynomial other) {
         if (nVars != other.n()) {
             throw new IllegalArgumentException("Number of variables does not match");
@@ -140,15 +129,10 @@ public class Polynomial {
                 for (int i = 0; i < exps.length; i++) {
                     exps[i] = myLPP.e(i) - otherLPP.e(i);
                 }
-                long myCoeff = myEntry.getValue();
-                long otherCoeff = otherEntry.getValue();
-                long gcd = gcd(myCoeff, otherCoeff);
-                long myFactor = otherCoeff / gcd;
-                long otherFactor = myCoeff / gcd;
-                Polynomial newSelf = mul(myFactor);
-                result.m().put(new Exponents(exps), otherFactor);
-                Polynomial newOther = other.mul(result);
-                Polynomial remainder = newSelf.sub(newOther);
+                ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(myEntry.getValue(), otherEntry.getValue());
+                Polynomial newSelf = mul(e.s_);
+                result.m().put(new Exponents(exps), e.t_);
+                Polynomial remainder = newSelf.add(other.mul(result));
                 return new Pair<>(result, remainder);
             } else {
                 Polynomial remainder = new Polynomial(nVars);
