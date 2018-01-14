@@ -24,81 +24,139 @@ public class Polynomial {
         this.monomials = new HashMap<>();
     }
 
-    public Polynomial add(Polynomial p) {
-        if (nVars != p.nVars) {
+    private int n() {
+        return nVars;
+    }
+
+    private Map<Exponents, Long> m() {
+        return monomials;
+    }
+
+    public Polynomial add(Polynomial other) {
+        if (nVars != other.n()) {
             throw new IllegalArgumentException("Number of variables does not match");
         }
         Polynomial result = new Polynomial(nVars);
-        for (Entry<Exponents, Long> monomial : monomials.entrySet()) {
+        monomials.entrySet().stream().forEach((monomial) -> {
             Exponents exp = monomial.getKey();
             long coeff = monomial.getValue();
-            result.monomials.put(exp, coeff);
-        }
-        for (Entry<Exponents, Long> monomial : p.monomials.entrySet()) {
+            result.m().put(exp, coeff);
+        });
+        other.m().entrySet().stream().forEach((monomial) -> {
             Exponents exp = monomial.getKey();
             long coeff = monomial.getValue();
-            result.monomials.put(exp, (result.monomials.containsKey(exp) ? result.monomials.get(exp) : 0) + coeff);
-        }
+            result.m().put(exp, (result.m().containsKey(exp) ? result.m().get(exp) : 0) + coeff);
+        });
         return result.removeZeroCoefficients();
     }
 
-    public Polynomial sub(Polynomial p) {
-        if (nVars != p.nVars) {
+    public Polynomial sub(Polynomial other) {
+        if (nVars != other.n()) {
             throw new IllegalArgumentException("Number of variables does not match");
         }
         Polynomial result = new Polynomial(nVars);
-        for (Entry<Exponents, Long> monomial : monomials.entrySet()) {
+        monomials.entrySet().stream().forEach((monomial) -> {
             Exponents exp = monomial.getKey();
             long coeff = monomial.getValue();
-            result.monomials.put(exp, coeff);
-        }
-        for (Entry<Exponents, Long> monomial : p.monomials.entrySet()) {
+            result.m().put(exp, coeff);
+        });
+        other.m().entrySet().stream().forEach((monomial) -> {
             Exponents exp = monomial.getKey();
             long coeff = monomial.getValue();
-            result.monomials.put(exp, (result.monomials.containsKey(exp) ? result.monomials.get(exp) : 0) - coeff);
-        }
+            result.m().put(exp, (result.m().containsKey(exp) ? result.m().get(exp) : 0) - coeff);
+        });
         return result.removeZeroCoefficients();
     }
 
-    public Polynomial mul(Polynomial p) {
-        if (nVars != p.nVars) {
+    public Polynomial mul(Polynomial other) {
+        if (nVars != other.n()) {
             throw new IllegalArgumentException("Number of variables does not match");
         }
         Polynomial result = new Polynomial(nVars);
-        for (Entry<Exponents, Long> m1 : monomials.entrySet()) {
+        monomials.entrySet().stream().forEach((m1) -> {
             Exponents e1 = m1.getKey();
             long coeff1 = m1.getValue();
-            for (Entry<Exponents, Long> m2 : p.monomials.entrySet()) {
+            other.m().entrySet().stream().forEach((m2) -> {
                 Exponents e2 = m2.getKey();
                 long coeff2 = m2.getValue();
                 long[] exp = new long[nVars];
                 for (int i = 0; i < exp.length; i++) {
-                    exp[i] = e1.e[i] + e2.e[i];
+                    exp[i] = e1.e(i) + e2.e(i);
                 }
                 Exponents e = new Exponents(exp);
-                long coeff = (result.monomials.containsKey(e) ? result.monomials.get(e) : 0) + coeff1 * coeff2;
-                result.monomials.put(e, coeff);
+                long coeff = (result.m().containsKey(e) ? result.m().get(e) : 0) + coeff1 * coeff2;
+                result.m().put(e, coeff);
+            });
+        });
+        return result.removeZeroCoefficients();
+    }
+
+    public Polynomial mul(long factor) {
+        Polynomial result = new Polynomial(nVars);
+        if (factor == 0) {
+            return result;
+        }
+        monomials.entrySet().stream().forEach((m1) -> {
+            Exponents e1 = m1.getKey();
+            long coeff1 = m1.getValue();
+            result.m().put(e1, coeff1 * factor);
+        });
+        return result;
+    }
+
+    public Polynomial div(Polynomial other) {
+        return div_mod(other).getKey();
+    }
+
+    public Polynomial mod(Polynomial other) {
+        return div_mod(other).getValue();
+    }
+
+    public long gcd(long a, long b) {
+        long x = Math.max(a, b);
+        long n = Math.min(a, b);
+        while (n > 0) {
+            long z = x % n;
+            x = n;
+            n = z;
+        }
+        return x;
+    }
+
+    public Pair<Polynomial, Polynomial> div_mod(Polynomial other) {
+        if (nVars != other.n()) {
+            throw new IllegalArgumentException("Number of variables does not match");
+        }
+        Polynomial result = new Polynomial(nVars);
+        {
+            List<Entry<Exponents, Long>> myMonomials = getSortedMonomials();
+            List<Entry<Exponents, Long>> otherMonomials = other.getSortedMonomials();
+            Entry<Exponents, Long> myEntry = myMonomials.get(0);
+            Exponents myLPP = myEntry.getKey();
+            Entry<Exponents, Long> otherEntry = otherMonomials.get(0);
+            Exponents otherLPP = otherEntry.getKey();
+            if (myLPP.compareTo(otherLPP) > 0) {
+                long[] exps = new long[nVars];
+                for (int i = 0; i < exps.length; i++) {
+                    exps[i] = myLPP.e(i) - otherLPP.e(i);
+                }
+                long myCoeff = myEntry.getValue();
+                long otherCoeff = otherEntry.getValue();
+                long gcd = gcd(myCoeff, otherCoeff);
+                long myFactor = otherCoeff / gcd;
+                long otherFactor = myCoeff / gcd;
+                Polynomial newSelf = mul(myFactor);
+                result.m().put(new Exponents(exps), otherFactor);
+                Polynomial newOther = other.mul(result);
+                Polynomial remainder = newSelf.sub(newOther);
+                return new Pair<>(result, remainder);
+            } else {
+                Polynomial remainder = new Polynomial(nVars);
+                result.m().entrySet().stream().forEach((entry)
+                        -> result.m().put(entry.getKey(), entry.getValue()));
+                return new Pair<>(result, remainder);
             }
         }
-        return result.removeZeroCoefficients();
-    }
-
-    public Polynomial div(Polynomial p) {
-        if (nVars != p.nVars) {
-            throw new IllegalArgumentException("Number of variables does not match");
-        }
-        Polynomial result = new Polynomial(nVars);
-
-        return result.removeZeroCoefficients();
-    }
-
-    public Polynomial mod(Polynomial p) {
-        if (nVars != p.nVars) {
-            throw new IllegalArgumentException("Number of variables does not match");
-        }
-        Polynomial result = new Polynomial(nVars);
-
-        return result.removeZeroCoefficients();
     }
 
     public Polynomial mod(long p) {
@@ -141,22 +199,22 @@ public class Polynomial {
             res.add(new Pair<>(coeff, new Exponents(exps)));
         }
         Polynomial p = new Polynomial(nVars);
-        for (Pair<Long, Exponents> monomial : res) {
+        res.stream().forEach((monomial) -> {
             Exponents exp = monomial.getValue();
             Long coeff = monomial.getKey();
-            if (p.monomials.containsKey(exp)) {
-                p.monomials.put(exp, p.monomials.get(exp) + coeff);
+            if (p.m().containsKey(exp)) {
+                p.m().put(exp, p.m().get(exp) + coeff);
             } else {
-                p.monomials.put(exp, coeff);
+                p.m().put(exp, coeff);
             }
-        }
+        });
         return p;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Entry<Exponents, Long> monomial : getSortedMonomials()) {
+        getSortedMonomials().stream().forEach((monomial) -> {
             long coeff = monomial.getValue();
             Exponents e = monomial.getKey();
             if (coeff > 0) {
@@ -166,9 +224,9 @@ public class Polynomial {
             }
             sb.append(Math.abs(coeff));
             for (int i = 0; i < e.e.length; i++) {
-                sb.append(" * x_").append(i).append("^").append(e.e[i]);
+                sb.append(" * x_").append(i).append("^").append(e.e(i));
             }
-        }
+        });
         return sb.toString();
     }
 
@@ -186,6 +244,10 @@ public class Polynomial {
 
         public Exponents(long[] e) {
             this.e = e;
+        }
+
+        public long e(int idx) {
+            return e[idx];
         }
 
         @Override
@@ -207,10 +269,7 @@ public class Polynomial {
                 return false;
             }
             final Exponents other = (Exponents) obj;
-            if (!Arrays.equals(this.e, other.e)) {
-                return false;
-            }
-            return true;
+            return Arrays.equals(this.e, other.e);
         }
 
         @Override
@@ -219,7 +278,7 @@ public class Polynomial {
                 throw new IllegalArgumentException("Number of variables does not match");
             }
             for (int i = 0; i < e.length; i++) {
-                long diff = e[i] - o.e[i];
+                long diff = e(i) - o.e(i);
                 if (diff != 0) {
                     if (diff > 0) {
                         return +1;

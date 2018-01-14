@@ -2,6 +2,7 @@ package modulargcd;
 
 import PACKAGE_NAME.Polynomial;
 import PACKAGE_NAME.PrimeGenerator;
+import javafx.util.Pair;
 
 public class ModularGCD {
 
@@ -22,8 +23,13 @@ public class ModularGCD {
         System.out.println(polySum);
         Polynomial polyProd = twicePoly1.mul(polySum);
         System.out.println(polyProd);
-        Polynomial zero = twicePoly1.sub(twicePoly1);
-        System.out.println(zero); // Empty line
+        Pair<Polynomial, Polynomial> divRes = polyProd.div_mod(poly1);
+        System.out.println(divRes.getKey());
+        System.out.println(divRes.getValue());
+        Polynomial zero1 = twicePoly1.sub(twicePoly1);
+        System.out.println(zero1); // Empty line
+        Polynomial zero2 = poly2.mul(0);
+        System.out.println(zero2); // Empty line
     }
 
     private static void primes() {
