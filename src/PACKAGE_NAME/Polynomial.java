@@ -10,16 +10,7 @@ public class Polynomial {
     private final int nVars;
     private final HashMap<Exponents, Long> monomials;
 
-    private final ArrayList<Long> coefficients;
-
-    public Polynomial(ArrayList<Long> coefficients) {
-        this.nVars = coefficients.size();
-        this.coefficients = coefficients;
-        this.monomials = new HashMap<>();
-    }
-
     private Polynomial(int nVars) {
-        this.coefficients = null;
         this.nVars = nVars;
         this.monomials = new HashMap<>();
     }
@@ -144,9 +135,9 @@ public class Polynomial {
     }
 
     public Polynomial mod(long p) {
-        Polynomial result = new Polynomial(nVars);
-
-        return result.removeZeroCoefficients();
+        Polynomial div = new Polynomial(nVars);
+        div.monomials.put(new Exponents(new long[nVars]), p);
+        return mod(div);
     }
 
     private Polynomial removeZeroCoefficients() {
@@ -262,13 +253,9 @@ public class Polynomial {
                 throw new IllegalArgumentException("Number of variables does not match");
             }
             for (int i = 0; i < e.length; i++) {
-                long diff = e(i) - o.e(i);
+                int diff = Long.compare(e(i), o.e(i));
                 if (diff != 0) {
-                    if (diff > 0) {
-                        return +1;
-                    } else {
-                        return -1;
-                    }
+                    return diff;
                 }
             }
             return 0;
