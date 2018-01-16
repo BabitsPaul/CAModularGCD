@@ -140,6 +140,14 @@ public class Polynomial {
         return mod(div);
     }
 
+    public long getLeadingCoefficient() {
+        return getSortedMonomials().get(0).getValue();
+    }
+
+    public long[] getLeadingPowerProduct() {
+        return getSortedMonomials().get(0).getKey().e.clone();
+    }
+
     private Polynomial removeZeroCoefficients() {
         Iterator<Entry<Exponents, Long>> iterator = monomials.entrySet().iterator();
         while (iterator.hasNext()) {
