@@ -9,7 +9,7 @@ public class ExtendedEuclideanGCDResult {
         long[] v = new long[]{a, b, 1, 0, 0, 1};
         while (v[1] != 0) {
             long q = v[0] / v[1];
-            v  = new long[]{
+            v = new long[]{
                 v[1],
                 v[0] - q * v[1],
                 v[3],
@@ -36,6 +36,8 @@ public class ExtendedEuclideanGCDResult {
         this.t = t;
         this.s_ = s_;
         this.t_ = t_;
+        assert (a * s + b * t == gcd);
+        assert (a * s_ + b * t_ == 0);
     }
 
     public long getGCD() {
