@@ -1,4 +1,4 @@
-package PACKAGE_NAME;
+package impl;
 
 import java.util.function.IntSupplier;
 

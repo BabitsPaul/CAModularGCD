@@ -1,17 +1,23 @@
 package modulargcd;
 
-import PACKAGE_NAME.ExtendedEuclideanGCDResult;
-import PACKAGE_NAME.Polynomial;
-import PACKAGE_NAME.PrimeGenerator;
+import impl.ExtendedEuclideanGCDResult;
+import impl.ModGCD;
+import impl.Polynomial;
+import impl.PrimeGenerator;
 import javafx.util.Pair;
 
 public class ModularGCD {
 
     public static void main(String[] args) {
         // TODO code application logic here
-        polynomials();
-        primes();
-        gcd();
+        // polynomials();
+        // primes();
+        // gcd();
+
+		Polynomial a = Polynomial.parse("2x^6 - 13x^5 + 20x^4 + 12x^3 - 20x^2 - 15x - 18", 1);
+		Polynomial b = Polynomial.parse("2x^6 + x^5 - 14x^4 - 11x^3 + 22x^2  + 28x + 8", 1);
+
+    	System.out.println(ModGCD.mod_gcd(a, b).toString());
     }
 
     private static void polynomials() {

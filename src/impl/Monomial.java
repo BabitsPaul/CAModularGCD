@@ -1,4 +1,4 @@
-package PACKAGE_NAME;
+package impl;
 
 public class Monomial implements Comparable<Monomial> {
 
