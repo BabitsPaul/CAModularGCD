@@ -352,7 +352,7 @@ public class Polynomial {
             } else {
                 sb.append(" - ");
             }
-            sb.append(Math.abs(coeff)).append(e.toString());
+            sb.append(Math.abs(coeff)).append( e.toString());
         });
         return sb.toString();
     }
