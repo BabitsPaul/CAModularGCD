@@ -125,16 +125,12 @@ public class Polynomial {
         long otherCoeff = other.getLeadingCoefficient();
 
         while (remainder.getLeadingExponents().compareTo(otherExp) >= 0) {
-            long[] remPP = remainder.getLeadingPowerProduct();
-            long[] diff = new long[nVars];
-            for (int i = 0; i < diff.length; i++) {
-                diff[i] = remPP[i] - otherPP[i];
-            }
+            Exponents diff = remainder.getLeadingExponents().sub(otherExp);
             ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(remainder.getLeadingCoefficient(), otherCoeff);
-            
+
             Polynomial factor = new Polynomial(nVars);
-            factor.monomials.put(new Exponents(diff), e.t_);
-            
+            factor.monomials.put(diff, e.t_);
+
             result = result.sub(factor);
             remainder = remainder.mul(e.s_).add(other.mul(factor));
         }
@@ -165,7 +161,7 @@ public class Polynomial {
 		}
 
 		return new Pair<>(q, r);
-         */ 
+         */
     }
 
     public Pair<Polynomial, Polynomial> div_mod_modular(Polynomial other, long p) {
@@ -352,7 +348,7 @@ public class Polynomial {
             } else {
                 sb.append(" - ");
             }
-            sb.append(Math.abs(coeff)).append( e.toString());
+            sb.append(Math.abs(coeff)).append(e.toString());
         });
         return sb.toString();
     }
@@ -407,6 +403,19 @@ public class Polynomial {
             return e[idx];
         }
 
+        public Exponents sub(Exponents o) {
+            if (e.length != o.e.length) {
+                throw new IllegalArgumentException("Exponent length does not match");
+            } else if (compareTo(o) < 0) {
+                throw new IllegalArgumentException("Would result in negative exponents");
+            }
+            long[] diff = new long[e.length];
+            for (int i = 0; i < diff.length; i++) {
+                diff[i] = e(i) - o.e(i);
+            }
+            return new Exponents(diff);
+        }
+
         @Override
         public int hashCode() {
             int hash = 3;
@@ -451,8 +460,5 @@ public class Polynomial {
             }
             return sb.toString();
         }
-        
-        
-
     }
 }
