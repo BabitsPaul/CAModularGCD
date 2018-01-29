@@ -177,9 +177,16 @@ public class Polynomial {
         long d = other.getDegree();
         long c = other.getLeadingCoefficient();
 
+<<<<<<< HEAD
+		while(r.getDegree() >= d && r.getDegree() > 0)
+		{
+			// inverse of c
+			long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).t;
+=======
         while (r.getDegree() >= d && r.getDegree() > 0) {
             // inverse of c
             long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).s;
+>>>>>>> 74c876bea480d8619fbb9a0b7c870807672c1603
 
             long coeff = r.getLeadingCoefficient() * c_inv % p;
 

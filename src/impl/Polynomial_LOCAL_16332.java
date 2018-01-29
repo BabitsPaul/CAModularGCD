@@ -17,10 +17,11 @@ public class Polynomial {
         this.monomials = new HashMap<>();
     }
 
-    public Polynomial(Map<Exponents, Long> monomials, int nVars) {
-        this.nVars = nVars;
-        this.monomials = monomials;
-    }
+    public Polynomial(Map<Exponents, Long> monomials, int nVars)
+	{
+		this.nVars  = nVars;
+		this.monomials = monomials;
+	}
 
     private int n() {
         return nVars;
@@ -28,12 +29,6 @@ public class Polynomial {
 
     public Map<Exponents, Long> monomials() {
         return monomials;
-    }
-
-    public Polynomial copy() {
-        Polynomial result = new Polynomial(nVars);
-        result.monomials.putAll(monomials);
-        return result;
     }
 
     public Polynomial add(Polynomial other) {
@@ -113,28 +108,50 @@ public class Polynomial {
     }
 
     public Pair<Polynomial, Polynomial> div_mod(Polynomial other) {
-        if (nVars != other.n()) {
+    	if (nVars != other.n()) {
             throw new IllegalArgumentException("Number of variables does not match");
         }
 
         Polynomial result = new Polynomial(nVars);
-        Polynomial remainder = copy();
 
-        Exponents otherExp = other.getLeadingExponents();
-        long[] otherPP = other.getLeadingPowerProduct();
-        long otherCoeff = other.getLeadingCoefficient();
+        List<Entry<Exponents, Long>> myMonomials = getSortedMonomials();
+        List<Entry<Exponents, Long>> otherMonomials = other.getSortedMonomials();
 
-        while (remainder.getLeadingExponents().compareTo(otherExp) >= 0) {
-            Exponents diff = remainder.getLeadingExponents().sub(otherExp);
-            ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(remainder.getLeadingCoefficient(), otherCoeff);
+        Entry<Exponents, Long> myEntry = myMonomials.get(0);
+        Exponents myLPP = myEntry.getKey();
 
-            Polynomial factor = new Polynomial(nVars);
-            factor.monomials.put(diff, e.t_);
+        Entry<Exponents, Long> otherEntry = otherMonomials.get(0);
+        Exponents otherLPP = otherEntry.getKey();
 
-            result = result.sub(factor);
-            remainder = remainder.mul(e.s_).add(other.mul(factor));
+        if (myLPP.compareTo(otherLPP) > 0) {
+            long[] exps = new long[nVars];
+
+            for (int i = 0; i < exps.length; i++) {
+                exps[i] = myLPP.e(i) - otherLPP.e(i);
+            }
+
+            ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(myEntry.getValue(), otherEntry.getValue());
+
+            Polynomial newSelf = mul(e.s_);
+            result.monomials().put(new Exponents(exps), e.t_);
+
+            Polynomial remainder = newSelf.add(other.mul(result));
+
+            return new Pair<>(result, remainder);
+        } else {
+            Polynomial remainder = new Polynomial(nVars);	// zero-polynomial
+
+            result
+                    .monomials()
+                    .entrySet()
+                    .stream()
+                    .forEach((entry)
+                            -> result
+                            .monomials()
+                            .put(entry.getKey(), entry.getValue()));
+            return new Pair<>(result, remainder);
         }
-        return new Pair<>(result, remainder);
+
         /*
 		if (nVars != other.n() || nVars != 1) {
 			throw new IllegalArgumentException("Number of variables does not match - must be 1");
@@ -161,38 +178,41 @@ public class Polynomial {
 		}
 
 		return new Pair<>(q, r);
-         */
-    }
+		*/
+	}
 
-    public Pair<Polynomial, Polynomial> div_mod_modular(Polynomial other, long p) {
-        // TODO modular division
+	public Pair<Polynomial, Polynomial> div_mod_modular(Polynomial other, long p)
+	{
+		// TODO modular division
 
-        if (nVars != other.n() || nVars != 1) {
-            throw new IllegalArgumentException("Number of variables does not match - must be 1");
-        }
+		if (nVars != other.n() || nVars != 1) {
+			throw new IllegalArgumentException("Number of variables does not match - must be 1");
+		}
 
-        // a = this, b = other
-        Polynomial q = new Polynomial(1);
-        Polynomial r = this;
-        long d = other.getDegree();
-        long c = other.getLeadingCoefficient();
+		// a = this, b = other
 
-        while (r.getDegree() >= d && r.getDegree() > 0) {
-            // inverse of c
-            long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).s;
+		Polynomial q = new Polynomial(1);
+		Polynomial r = this;
+		long d = other.getDegree();
+		long c = other.getLeadingCoefficient();
 
-            long coeff = r.getLeadingCoefficient() * c_inv % p;
+		while(r.getDegree() >= d && r.getDegree() > 0)
+		{
+			// inverse of c
+			long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).t;
 
-            Map<Exponents, Long> sMonomials = new HashMap<>();
-            sMonomials.put(new Exponents(new long[]{r.getDegree() - d}), coeff);
+			long coeff = r.getLeadingCoefficient() * c_inv % p;
 
-            Polynomial s = new Polynomial(sMonomials, nVars);
-            q = q.add(s).mod(p);				// q = q + s
-            r = r.sub(s.mul(other)).mod(p);	// r = r - s * b
-        }
+			Map<Exponents, Long> sMonomials = new HashMap<>();
+			sMonomials.put(new Exponents(new long[]{r.getDegree() - d}), coeff);
 
-        return new Pair<>(q, r);
-    }
+			Polynomial s = new Polynomial(sMonomials, nVars);
+			q = q.add(s).mod(p);				// q = q + s
+			r = r.sub(s.mul(other)).mod(p);	// r = r - s * b
+		}
+
+		return new Pair<>(q, r);
+	}
 
     public Polynomial mod(long m) {
         Polynomial p = new Polynomial(nVars);
@@ -207,28 +227,27 @@ public class Polynomial {
         return p;
     }
 
-    public int monomialCount() {
-        return monomials.size();
-    }
+    public int monomialCount()
+	{
+		return monomials.size();
+	}
 
-    public int nVars() {
-        return nVars;
-    }
+	public int nVars()
+	{
+		return nVars;
+	}
 
-    public Collection<Long> getCoefficients() {
-        return monomials.values();
-    }
+	public Collection<Long> getCoefficients()
+	{
+		return monomials.values();
+	}
 
     public long getLeadingCoefficient() {
         return getSortedMonomials().get(0).getValue();
     }
 
-    public Exponents getLeadingExponents() {
-        return getSortedMonomials().get(0).getKey();
-    }
-
     public long[] getLeadingPowerProduct() {
-        return getLeadingExponents().e.clone();
+        return getSortedMonomials().get(0).getKey().e.clone();
     }
 
     private Polynomial removeZeroCoefficients() {
@@ -245,97 +264,97 @@ public class Polynomial {
     }
 
     public static Polynomial parse(String poly_string, int nVars) {
-        // normalize string (no spaces)
-        poly_string = poly_string.replaceAll("\\s+", "");
+    	// normalize string (no spaces)
+    	poly_string = poly_string.replaceAll("\\s+", "");
 
-        // get varcount
-        int[] vars = poly_string.chars().filter(Character::isLowerCase).distinct().sorted().toArray();
-        Map<Character, Integer> posMap = new HashMap<>();
+		// get varcount
+		int[] vars = poly_string.chars().filter(Character::isLowerCase).distinct().sorted().toArray();
+		Map<Character, Integer> posMap = new HashMap<>();
 
-        for (int i = 0; i < vars.length; i++) {
-            posMap.put((char) vars[i], i);	// cast is safe, since only a-z are allowed as var-names
-        }
-        // list monomial-strings
-        Pattern monomialPattern = Pattern.compile("[+-]?\\d*([a-z](\\^\\d+)?\\*?)*");
-        Matcher monomialMatcher = monomialPattern.matcher(poly_string);
+		for(int i = 0; i < vars.length; i++)
+			posMap.put((char) vars[i], i);	// cast is safe, since only a-z are allowed as var-names
 
-        List<String> matches = new ArrayList<>();
+    	// list monomial-strings
+		Pattern monomialPattern = Pattern.compile("[+-]?\\d*([a-z](\\^\\d+)?\\*?)*");
+		Matcher monomialMatcher = monomialPattern.matcher(poly_string);
 
-        while (monomialMatcher.find()) {
-            String s = monomialMatcher.group();
+		List<String> matches = new ArrayList<>();
 
-            if (s.equals("")) {
-                continue;
-            }
+		while(monomialMatcher.find()) {
+			String s = monomialMatcher.group();
 
-            matches.add(s);
-        }
+			if(s.equals(""))
+				continue;
 
-        // generate monomials
-        Pattern varPattern = Pattern.compile("([a-z])((\\^\\d+)?)\\*?");
-        Pattern signCoeffPattern = Pattern.compile("([+-]?)(\\d*)");
+			matches.add(s);
+		}
 
-        Map<Exponents, Long> monomials = new HashMap<>();
+		// generate monomials
+		Pattern varPattern = Pattern.compile("([a-z])((\\^\\d+)?)\\*?");
+		Pattern signCoeffPattern = Pattern.compile("([+-]?)(\\d*)");
 
-        for (String m : matches) {
-            Matcher signCoeffMatcher = signCoeffPattern.matcher(m);
+		Map<Exponents, Long> monomials = new HashMap<>();
 
-            if (!signCoeffMatcher.find()) {
-                throw new IllegalArgumentException("Couldn't find sign / coefficient for monomial");
-            }
+		for(String m : matches)
+		{
+			Matcher signCoeffMatcher = signCoeffPattern.matcher(m);
 
-            long coeff;
+			if(!signCoeffMatcher.find())
+				throw new IllegalArgumentException("Couldn't find sign / coefficient for monomial");
 
-            switch (signCoeffMatcher.group(1)) {
-                case "":
-                case "+":
-                    coeff = 1;
-                    break;
-                case "-":
-                    coeff = -1;
-                    break;
-                default:
-                    throw new RuntimeException("Dunno wtf happened here");
-            }
+			long coeff;
 
-            if (signCoeffMatcher.group(2).length() > 0) {
-                coeff *= Long.parseLong(signCoeffMatcher.group(2));
-            }
+			switch (signCoeffMatcher.group(1))
+			{
+				case "":
+				case "+":
+					coeff = 1;
+					break;
+				case "-":
+					coeff = -1;
+					break;
+				default:
+					throw new RuntimeException("Dunno wtf happened here");
+			}
 
-            // extract single variable + exponent components
-            Matcher varMatcher = varPattern.matcher(m);
-            long[] exps = new long[vars.length];
-            while (varMatcher.find()) {
-                char varc = varMatcher.group(1).charAt(0);
+			if(signCoeffMatcher.group(2).length() > 0)
+				coeff *= Long.parseLong(signCoeffMatcher.group(2));
 
-                String expStr = varMatcher.group(2);
-                long exp;
+			// extract single variable + exponent components
+			Matcher varMatcher = varPattern.matcher(m);
+			long[] exps = new long[vars.length];
+			while(varMatcher.find())
+			{
+				char varc = varMatcher.group(1).charAt(0);
 
-                if (expStr.equals("")) {
-                    exp = 1;
-                } else {
-                    exp = Long.parseLong(expStr.substring(1));	// trim ^-sign
-                }
-                exps[posMap.get(varc)] += exp;
-            }
+				String expStr = varMatcher.group(2);
+				long exp;
 
-            // place monomial in table
-            Exponents e = new Exponents(exps);
+				if(expStr.equals(""))
+					exp = 1;
+				else
+					exp = Long.parseLong(expStr.substring(1));	// trim ^-sign
 
-            if (monomials.containsKey(e)) {
-                monomials.put(e, monomials.get(e) + coeff);
-            } else {
-                monomials.put(e, coeff);
-            }
-        }
+				exps[posMap.get(varc)] += exp;
+			}
 
-        // build polynomial
-        return new Polynomial(monomials, vars.length);
+			// place monomial in table
+			Exponents e = new Exponents(exps);
+
+			if(monomials.containsKey(e))
+				monomials.put(e, monomials.get(e) + coeff);
+			else
+				monomials.put(e, coeff);
+		}
+
+		// build polynomial
+		return new Polynomial(monomials, vars.length);
     }
 
-    public static Polynomial zeroPolynomial(int nVars) {
-        return new Polynomial(nVars);
-    }
+    public static Polynomial zeroPolynomial(int nVars)
+	{
+		return new Polynomial(nVars);
+	}
 
     @Override
     public String toString() {
@@ -348,7 +367,10 @@ public class Polynomial {
             } else {
                 sb.append(" - ");
             }
-            sb.append(Math.abs(coeff)).append(e.toString());
+            sb.append(Math.abs(coeff));
+            for (int i = 0; i < e.e.length; i++) {
+                sb.append(" * x_").append(i).append("^").append(e.e(i));
+            }
         });
         return sb.toString();
     }
@@ -361,37 +383,39 @@ public class Polynomial {
                 .collect(Collectors.toList());
     }
 
-    public long content() {
-        long res = 0;
+    public long content()
+	{
+		long res = 0;
 
-        for (long c : monomials.values()) {
-            res = ExtendedEuclideanGCDResult.calculateGCD(res, c).gcd;
-        }
+		for(long c : monomials.values())
+			res = ExtendedEuclideanGCDResult.calculateGCD(res, c).gcd;
 
-        return res;
-    }
+		return res;
+	}
 
-    public Polynomial primitivePolynomial() {
-        long c = content();
-        Polynomial res = new Polynomial(nVars);
+	public Polynomial primitivePolynomial()
+	{
+		long c = content();
+		Polynomial res = new Polynomial(nVars);
 
-        for (Exponents e : monomials.keySet()) {
-            res.monomials.put(e, monomials.get(e) / c);
-        }
+		for(Exponents e : monomials.keySet())
+			res.monomials.put(e, monomials.get(e) / c);
 
-        return res;
-    }
+		return res;
+	}
 
-    public long getDegree(int var) {
-        return monomials.keySet().stream().max(Comparator.comparing(e -> e.e[var])).
-                map(e -> e.e[var]).orElse(0l);
-    }
+	public long getDegree(int var)
+	{
+		return monomials.keySet().stream().max(Comparator.comparing(e -> e.e[var])).
+				map(e -> e.e[var]).orElse(0l);
+	}
 
-    public long getDegree() {
-        return getDegree(0);
-    }
+	public long getDegree()
+	{
+		return getDegree(0);
+	}
 
-    public static class Exponents implements Comparable<Exponents> {
+	public static class Exponents implements Comparable<Exponents> {
 
         private final long[] e;
 
@@ -401,19 +425,6 @@ public class Polynomial {
 
         public long e(int idx) {
             return e[idx];
-        }
-
-        public Exponents sub(Exponents o) {
-            if (e.length != o.e.length) {
-                throw new IllegalArgumentException("Exponent length does not match");
-            } else if (compareTo(o) < 0) {
-                throw new IllegalArgumentException("Would result in negative exponents");
-            }
-            long[] diff = new long[e.length];
-            for (int i = 0; i < diff.length; i++) {
-                diff[i] = e(i) - o.e(i);
-            }
-            return new Exponents(diff);
         }
 
         @Override
@@ -452,13 +463,5 @@ public class Polynomial {
             return 0;
         }
 
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < e.length; i++) {
-                sb.append(" * x_").append(i).append("^").append(e(i));
-            }
-            return sb.toString();
-        }
     }
 }

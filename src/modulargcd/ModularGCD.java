@@ -13,18 +13,29 @@ public class ModularGCD {
         // polynomials();
         // primes();
         // gcd();
+        
+        Polynomial pt1 = Polynomial.parse("11x^4 - 7x^3 + 5x^2 - 3x^1+8", 1);
+        Polynomial pt2 = Polynomial.parse("1x^1+1", 1);
+        System.out.println(pt1);
+        System.out.println(pt2);
+        Pair<Polynomial, Polynomial> div_mod = pt1.div_mod(pt2);
+        System.out.println(div_mod.getKey());
+        System.out.println(div_mod.getValue());
+        System.out.println(pt1);
+        System.out.println(div_mod.getKey().mul(pt2));
+        System.out.println("--------");
 
-		Polynomial a = Polynomial.parse("2x^6 - 13x^5 + 20x^4 + 12x^3 - 20x^2 - 15x - 18", 1);
-		Polynomial b = Polynomial.parse("2x^6 + x^5 - 14x^4 - 11x^3 + 22x^2  + 28x + 8", 1);
+        Polynomial a = Polynomial.parse("2x^6 - 13x^5 + 20x^4 + 12x^3 - 20x^2 - 15x - 18", 1);
+        Polynomial b = Polynomial.parse("2x^6 + x^5 - 14x^4 - 11x^3 + 22x^2  + 28x + 8", 1);
 
-    	System.out.println(ModGCD.mod_gcd(a, b).toString());
+        System.out.println(ModGCD.mod_gcd(a, b).toString());
     }
 
     private static void polynomials() {
         // Example usage of polynomials
-        Polynomial poly1 = Polynomial.parse("-15*1^2*2^3*4^5+12*3^2*0^3", 5);
-        Polynomial poly2 = Polynomial.parse("15*1^2*2^3*4^5-3*0^8*4^2*2^3", 5);
-        System.out.println(poly1);
+        Polynomial poly1 = Polynomial.parse("-15*x^2*y^3*z^5+12*3^2*u^3", 5);
+        Polynomial poly2 = Polynomial.parse("15*x^2*y^3*z^5-3*u^8*z^2*y^3", 5);
+        System.out.println(poly1.toString());
         Polynomial twicePoly1 = poly1.add(poly1);
         System.out.println(twicePoly1);
         Polynomial polySum = poly1.add(poly2);
@@ -38,9 +49,9 @@ public class ModularGCD {
         System.out.println(zero1); // Empty line
         Polynomial zero2 = poly2.mul(0);
         System.out.println(zero2); // Empty line
-        
-        Polynomial p1 = Polynomial.parse("15*0^3*1^3*2^3-2*0^3*2^1", 3);
-        Polynomial p2 = Polynomial.parse("3*0^2*1^1*2^3+5*0^1*1^1*2^5", 3);
+
+        Polynomial p1 = Polynomial.parse("15*u^3*x^3*y^3-2*u^3*y^1", 3);
+        Polynomial p2 = Polynomial.parse("3*u^2*x^1*y^3+5*u^1*x^1*y^5", 3);
         Pair<Polynomial, Polynomial> res = p1.div_mod(p2);
         System.out.println(res.getKey()); // Should be -5 * x_0^1 * x_1^2 * x_2^0
         System.out.println(res.getValue()); // Should be -2 * x_0^3 * x_1^0 * x_2^1   -25 * x_0^2 * x_1^3 * x_2^5
