@@ -199,7 +199,7 @@ public class Polynomial {
 		while(r.getDegree() >= d && r.getDegree() > 0)
 		{
 			// inverse of c
-			long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).s;
+			long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).t;
 
 			long coeff = r.getLeadingCoefficient() * c_inv % p;
 

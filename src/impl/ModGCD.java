@@ -98,7 +98,7 @@ public class ModGCD
 			b = a.div_mod_modular(b, p).getValue();
 			a = tmp;
 
-			b = b.mod(p);
+			// b = b.mod(p);
 		}
 
 		return a;
