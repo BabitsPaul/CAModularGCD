@@ -6,6 +6,21 @@ public class ExtendedEuclideanGCDResult {
     // a*s + b*t = gcd(a, b)
     // a*s_ + b*t_ = 0
     public static ExtendedEuclideanGCDResult calculateGCD(long a, long b) {
+    	long a_ = a;
+    	long b_ = b;
+
+    	// swap parameters if necessary
+		boolean swap = false;
+
+    	if(a < b)
+		{
+			long tmp = a;
+			a = b;
+			b = tmp;
+
+			swap = true;
+		}
+
         long[] v = new long[]{a, b, 1, 0, 0, 1};
         while (v[1] != 0) {
             long q = v[0] / v[1];
@@ -17,7 +32,12 @@ public class ExtendedEuclideanGCDResult {
                 v[5],
                 v[4] - q * v[5],};
         }
-        return new ExtendedEuclideanGCDResult(a, b, v[0], v[2], v[4], v[3], v[5]);
+
+        if(swap)
+			return new ExtendedEuclideanGCDResult(a_, b_, v[0], v[4], v[2], v[5], v[3]);
+        else
+        	return new ExtendedEuclideanGCDResult(a, b, v[0], v[2], v[4], v[3], v[5]);
+
     }
 
     private final long a;

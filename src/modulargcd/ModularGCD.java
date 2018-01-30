@@ -13,7 +13,8 @@ public class ModularGCD {
         // polynomials();
         // primes();
         // gcd();
-        
+
+		/*
         Polynomial pt1 = Polynomial.parse("11x^4 - 7x^3 + 5x^2 - 3x^1+8", 1);
         Polynomial pt2 = Polynomial.parse("1x^1+1", 1);
         System.out.println(pt1);
@@ -24,11 +25,28 @@ public class ModularGCD {
         System.out.println(pt1);
         System.out.println(div_mod.getKey().mul(pt2));
         System.out.println("--------");
+        */
 
         Polynomial a = Polynomial.parse("2x^6 - 13x^5 + 20x^4 + 12x^3 - 20x^2 - 15x - 18", 1);
         Polynomial b = Polynomial.parse("2x^6 + x^5 - 14x^4 - 11x^3 + 22x^2  + 28x + 8", 1);
 
-        System.out.println(ModGCD.mod_gcd(a, b).toString());
+        // System.out.println(ModGCD.gcd_modulo(a, b, 5));
+		// System.out.println(ModGCD.gcd_modulo(a, b, 7));
+        // System.out.println(ModGCD.gcd_modulo(a, b, 11));
+
+        a = Polynomial.parse("4x^5 - 13x^3 + 7x^2 + 8", 1);
+        b = Polynomial.parse("2x^6 + 9x^4 + 8x^2 + 12x + 9", 1);
+
+        Polynomial tmp = ModGCD.gcd_modulo(a, b, 11);
+        System.out.println(tmp);
+
+        a = a.div(tmp);
+        b = b.div(tmp);
+
+        System.out.println(a.mul(tmp));
+        System.out.println(b.mul(tmp));
+
+        // System.out.println(ModGCD.mod_gcd(a, b));
     }
 
     private static void polynomials() {

@@ -2,10 +2,7 @@ package crt;
 
 import impl.Polynomial;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Crt {
 	public static int cra(LongObj x, long [] a, long [] m) { //m : array of moduli
@@ -45,10 +42,13 @@ public class Crt {
 		Map<Polynomial.Exponents, Long> monomialsY = y.monomials();
 		Map<Polynomial.Exponents, Long> result = new HashMap<>();
 
-		for(Polynomial.Exponents e : monomialsX.keySet())
+		Set<Polynomial.Exponents> exps = new HashSet<>(monomialsX.keySet());
+		exps.addAll(monomialsY.keySet());
+
+		for(Polynomial.Exponents e : exps)
 		{
-			a[0] = monomialsX.get(e);
-			a[1] = monomialsY.get(e);
+			a[0] = Optional.ofNullable(monomialsX.get(e)).orElse(0l);
+			a[1] = Optional.ofNullable(monomialsY.get(e)).orElse(0l);
 
 			cra(lob, a, m);
 

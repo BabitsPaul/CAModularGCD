@@ -7,7 +7,8 @@ public class ModGCD
 	public static Polynomial mod_gcd(Polynomial a, Polynomial b)
 	{
 		// swap polynomials if necessary
-		if(a.getDegree() < b.getDegree())
+		if(a.getDegree() < b.getDegree() ||
+				a.getDegree() == b.getDegree() && a.getLeadingCoefficient() < b.getLeadingCoefficient() )
 		{
 			Polynomial tmp = a;
 			a = b;
@@ -15,11 +16,14 @@ public class ModGCD
 		}
 
 		PrimeGenerator primeGen = new PrimeGenerator();
+		primeGen.getAsInt();
+		primeGen.getAsInt();
 
 		Polynomial g;
 
 		long d = ExtendedEuclideanGCDResult.calculateGCD(a.getLeadingCoefficient(), b.getLeadingCoefficient()).gcd;
 		long M = 2 * d * landauMignotteBound(a, b);
+		M = 221;
 
 		long p;
 
@@ -54,7 +58,8 @@ public class ModGCD
 			}
 
 			g = g.primitivePolynomial();
-		}while(a.div_mod(g).getValue().monomialCount() != 0 || b.div_mod(g).getValue().monomialCount() != 0);
+		}while(a.div_mod_modular(g, p).getValue().monomialCount() != 0 ||
+				b.div_mod_modular(g, p).getValue().monomialCount() != 0);
 
 		return g;
 	}
@@ -77,7 +82,7 @@ public class ModGCD
 		return p;
 	}
 
-	private static Polynomial gcd_modulo(Polynomial a, Polynomial b, long p)
+	public static Polynomial gcd_modulo(Polynomial a, Polynomial b, long p)
 	{
 		a = a.mod(p);
 		b = b.mod(p);
@@ -97,10 +102,37 @@ public class ModGCD
 			tmp = b;
 			b = a.div_mod_modular(b, p).getValue();
 			a = tmp;
-
-			// b = b.mod(p);
 		}
 
-		return a;
+		return a.toPositiveCoefficients(p).primitivePolynomial().normalizeByLP(p);
+	}
+
+	public static long multiplicativeInverse(long n, long p)
+	{
+		// n * x + p * y = 1
+		// n * x - 1 = (-y) * m
+		// n * x = 1 (mod m)
+
+		// correct n if negative
+		if(n < 0)
+			n = correctNegativeMod(n, p);
+
+		ExtendedEuclideanGCDResult r = ExtendedEuclideanGCDResult.calculateGCD(n, p);
+
+		if(r.getGCD() != 1)
+			throw new IllegalArgumentException("Values are not coprime - failed to calculate inverse for " + n + " " + p);
+
+		return r.getS();
+	}
+
+	public static long modularDivision(long denom, long num, long p)
+	{
+		// returns n s.t. num * n = denom (mod p)
+		return correctNegativeMod((denom % p) * multiplicativeInverse(num, p) , p);
+	}
+
+	private static long correctNegativeMod(long v, long p)
+	{
+		return (v % p + p) % p;
 	}
 }

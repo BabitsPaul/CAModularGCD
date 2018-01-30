@@ -124,7 +124,6 @@ public class Polynomial {
         long[] otherPP = other.getLeadingPowerProduct();
         long otherCoeff = other.getLeadingCoefficient();
 
-        while (remainder.getLeadingExponents().compareTo(otherExp) >= 0) {
             Exponents diff = remainder.getLeadingExponents().sub(otherExp);
             ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(remainder.getLeadingCoefficient(), otherCoeff);
 
@@ -135,51 +134,24 @@ public class Polynomial {
             remainder = remainder.mul(e.s_).add(other.mul(factor));
         }
         return new Pair<>(result, remainder);
-        /*
-		if (nVars != other.n() || nVars != 1) {
-			throw new IllegalArgumentException("Number of variables does not match - must be 1");
-		}
-
-		// a = this, b = other
-
-		Polynomial q = new Polynomial(1);
-		Polynomial r = this;
-		long d = other.getDegree();
-		long c = other.getLeadingCoefficient();
-
-		while(r.getDegree() >= d && r.getDegree() > 0)
-		{
-			long coeff = r.getLeadingCoefficient() / c;
-
-			Map<Exponents, Long> sMonomials = new HashMap<>();
-			sMonomials.put(new Exponents(new long[]{r.getDegree() - d}), coeff);
-
-			// TODO division not integral!!!
-			Polynomial s = new Polynomial(sMonomials, nVars);
-			q = q.add(s);				// q = q + s
-			r = r.sub(s.mul(other));	// r = r - s * b
-		}
-
-		return new Pair<>(q, r);
-         */
     }
 
-    public Pair<Polynomial, Polynomial> div_mod_modular(Polynomial other, long p) {
-        // TODO modular division
-
+    public Pair<Polynomial, Polynomial> div_mod_modular(Polynomial other, long p)
+	{
         if (nVars != other.n() || nVars != 1) {
             throw new IllegalArgumentException("Number of variables does not match - must be 1");
         }
 
         // a = this, b = other
+		Polynomial o_ = other.mod(p);
         Polynomial q = new Polynomial(1);
-        Polynomial r = this;
+        Polynomial r = this.mod(p);
         long d = other.getDegree();
         long c = other.getLeadingCoefficient();
 
         while (r.getDegree() >= d && r.getDegree() > 0) {
             // inverse of c
-            long c_inv = ExtendedEuclideanGCDResult.calculateGCD(p, c).s;
+            long c_inv = ModGCD.multiplicativeInverse(c, p);
 
             long coeff = r.getLeadingCoefficient() * c_inv % p;
 
@@ -188,10 +160,10 @@ public class Polynomial {
 
             Polynomial s = new Polynomial(sMonomials, nVars);
             q = q.add(s).mod(p);				// q = q + s
-            r = r.sub(s.mul(other)).mod(p);	// r = r - s * b
+            r = r.sub(s.mul(o_)).mod(p);	// r = r - s * b
         }
 
-        return new Pair<>(q, r);
+        return new Pair<>(q.toPositiveCoefficients(p), r.toPositiveCoefficients(p));
     }
 
     public Polynomial mod(long m) {
@@ -365,10 +337,10 @@ public class Polynomial {
         long res = 0;
 
         for (long c : monomials.values()) {
-            res = ExtendedEuclideanGCDResult.calculateGCD(res, c).gcd;
+            res = ExtendedEuclideanGCDResult.calculateGCD(res, c).getGCD();
         }
 
-        return res;
+        return res == 0 ? 1 : res;
     }
 
     public Polynomial primitivePolynomial() {
@@ -381,6 +353,29 @@ public class Polynomial {
 
         return res;
     }
+
+	public Polynomial toPositiveCoefficients(long p)
+	{
+		Map<Exponents, Long> exps = new HashMap<>();
+
+		for(Exponents e : monomials.keySet())
+			exps.put(e, ((monomials.get(e) % p + p) % p));
+
+		return new Polynomial(exps, nVars);
+	}
+
+	public Polynomial normalizeByLP(long p)
+	{
+		long d = ModGCD.multiplicativeInverse(getLeadingCoefficient(), p);
+		d = (d % p + p) % p;
+
+		Map<Exponents, Long> exps = new HashMap<>();
+
+		for(Exponents e : monomials.keySet())
+			exps.put(e, ((monomials.get(e) % p + p) * d % p));
+
+		return new Polynomial(exps, nVars);
+	}
 
     public long getDegree(int var) {
         return monomials.keySet().stream().max(Comparator.comparing(e -> e.e[var])).
