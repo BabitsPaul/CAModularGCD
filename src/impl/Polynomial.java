@@ -124,6 +124,7 @@ public class Polynomial {
         long[] otherPP = other.getLeadingPowerProduct();
         long otherCoeff = other.getLeadingCoefficient();
 
+        while (remainder.getLeadingExponents().compareTo(otherExp) >= 0) {
             Exponents diff = remainder.getLeadingExponents().sub(otherExp);
             ExtendedEuclideanGCDResult e = ExtendedEuclideanGCDResult.calculateGCD(remainder.getLeadingCoefficient(), otherCoeff);
 
