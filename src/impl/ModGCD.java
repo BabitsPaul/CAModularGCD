@@ -1,5 +1,6 @@
 package impl;
 
+import arithm.PrimeGenerator;
 import crt.Crt;
 
 public class ModGCD
@@ -16,8 +17,6 @@ public class ModGCD
 		}
 
 		PrimeGenerator primeGen = new PrimeGenerator();
-		primeGen.getAsInt();
-		primeGen.getAsInt();
 
 		Polynomial g;
 
@@ -77,7 +76,7 @@ public class ModGCD
 	{
 		long p;
 
-		while(d % (p = gen.getAsInt()) == 0);
+		while(d % (p = gen.next()) == 0);
 
 		return p;
 	}

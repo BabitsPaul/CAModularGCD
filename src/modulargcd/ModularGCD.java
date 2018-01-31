@@ -3,7 +3,7 @@ package modulargcd;
 import impl.ExtendedEuclideanGCDResult;
 import impl.ModGCD;
 import impl.Polynomial;
-import impl.PrimeGenerator;
+import arithm.PrimeGenerator;
 import javafx.util.Pair;
 
 public class ModularGCD {
@@ -30,10 +30,14 @@ public class ModularGCD {
         Polynomial a = Polynomial.parse("2x^6 - 13x^5 + 20x^4 + 12x^3 - 20x^2 - 15x - 18", 1);
         Polynomial b = Polynomial.parse("2x^6 + x^5 - 14x^4 - 11x^3 + 22x^2  + 28x + 8", 1);
 
-        // System.out.println(ModGCD.gcd_modulo(a, b, 5));
-		// System.out.println(ModGCD.gcd_modulo(a, b, 7));
-        // System.out.println(ModGCD.gcd_modulo(a, b, 11));
+        System.out.println(ModGCD.gcd_modulo(a, b, 5));
+		System.out.println(ModGCD.gcd_modulo(a, b, 7));
+        System.out.println(ModGCD.gcd_modulo(a, b, 11));
+		System.out.println(ModGCD.gcd_modulo(a, b, 13));
 
+		System.out.println(Polynomial.parse("2x^3 + 5x^2 - 3", 1).toPositiveCoefficients(13).normalizeByLP(13));
+
+		/*
         a = Polynomial.parse("4x^5 - 13x^3 + 7x^2 + 8", 1);
         b = Polynomial.parse("2x^6 + 9x^4 + 8x^2 + 12x + 9", 1);
 
@@ -47,6 +51,7 @@ public class ModularGCD {
         System.out.println(b.mul(tmp));
 
         // System.out.println(ModGCD.mod_gcd(a, b));
+        */
     }
 
     private static void polynomials() {
@@ -80,14 +85,14 @@ public class ModularGCD {
         PrimeGenerator p1 = new PrimeGenerator();
         // Generate 9999 primes
         for (int i = 0; i < 9999; i++) {
-            p1.getAsInt();
+            p1.next();
         }
         // Generate and print the 10000th prime
-        System.out.println(p1.getAsInt());
+        System.out.println(p1.next());
         PrimeGenerator p2 = new PrimeGenerator(5);
         // Generate and print 5 and the 4 primes following it
         for (int i = 0; i < 5; i++) {
-            System.out.println(p2.getAsInt());
+            System.out.println(p2.next());
         }
     }
 
